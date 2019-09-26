@@ -5,8 +5,6 @@ let io = require('socket.io')(server);
 var port = process.env.PORT || 3001;
 
 io.on('connection', (socket) => {
-    console.log(socket);
-
     socket.on('disconnect', function() {
         io.emit('users-changed', { user: socket.username, event: 'left' });
     });
