@@ -11,7 +11,7 @@ io.on('connection', (socket) => {
 
     socket.on('set-name', (name) => {
         socket.username = name;
-        io.emit('user-changed', {user: name, event: 'joined'});
+        io.emit('users-changed', {user: name, event: 'joined'});
     });
 
     socket.on('send-message', (message) => {
