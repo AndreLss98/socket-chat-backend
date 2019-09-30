@@ -7,30 +7,28 @@ var port = process.env.PORT || 3001;
 let users = [];
 
 io.on('connection', (socket) => {
+    socket.emit('first-connection', users);
 
-    socket.on('disconnect', function() {
-        let pos = users.findIndex(element => element.id === socket.id);
+    socket.on('disconnect', () => {
+        const pos = users.findIndex(element => element.id === socket.id);
         if (pos > -1) {
+            io.emit('logout-user', users[pos]);
             users.splice(pos, 1);
         }
-        io.emit('users-changed', users);
     });
 
-    socket.on('set-name', (name) => {
-        socket.username = name;
-        users.push({
-            id: socket.id,
-            userName: name
-        });
-        io.emit('users-changed', users);
+    socket.on('login-user', (user) => {
+        users.push({ id: socket.id, userName: user });
+        socket.emit('my-id', { id: socket.id });
+        socket.broadcast.emit('new-user', { id: socket.id, userName: user });
     });
 
-    socket.on('send-message-all-users', (message) => {
-        io.emit('message', {msg: message.text, user: socket.username, createdAt: new Date()});
+    socket.on('send-private-message', (message) => {
+        socket.broadcast.to(message.idTarget).emit('private-message', { idSender: message.idSender, message: message.text, senderName: message.senderName });
     });
 
-    socket.on('private-message', (data) => {
-        socket.broadcast.to(data.id).emit('send-private-message', {message: data.message, user: data.userName});
+    socket.on('send-public-message', (message) => {
+        io.emit('public-message', { idSender: message.idSender, message: message.message, senderName: message.senderName });
     });
 });
 
